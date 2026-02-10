@@ -7,7 +7,6 @@ from app.cache.decorators import cached_entity
 from app.db.models import Order, OrderStatus
 from app.db.repositories.order_repository import OrderRepository
 from app.schemas.order import OrderCreate, OrderResponse
-from app.services import order_service
 
 
 ORDER_DETAIL_CACHE_TTL = 300

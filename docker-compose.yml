@@ -47,7 +47,8 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile.api
+      dockerfile: Dockerfile
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -68,7 +69,8 @@ services:
   consumer:
     build:
       context: .
-      dockerfile: Dockerfile.consumer
+      dockerfile: Dockerfile
+    command: ["python", "-m", "consumer.main"]
     depends_on:
       kafka:
         condition: service_started
@@ -84,7 +86,8 @@ services:
   taskiq-worker:
     build:
       context: .
-      dockerfile: Dockerfile.worker
+      dockerfile: Dockerfile
+    command: ["taskiq", "worker", "app.tasks.broker:broker", "app.tasks"]
     depends_on:
       redis:
         condition: service_healthy

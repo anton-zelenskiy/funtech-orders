@@ -9,11 +9,8 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --no-dev --no-install-project
 
 COPY . .
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --no-dev && \
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --no-dev --no-install-project && \
     chmod -R 755 /opt/venv
 
 ENV PYTHONPATH=/app
 ENV PATH="/opt/venv/bin:$PATH"
-EXPOSE 8000
-
-CMD ["/opt/venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

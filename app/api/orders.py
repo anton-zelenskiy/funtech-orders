@@ -47,7 +47,7 @@ async def get_order(
     if response is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
     if response.user_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your order")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot access this order")
     return response
 
 
@@ -64,7 +64,7 @@ async def update_order(
     if order is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
     if order.user_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your order")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot access this order")
     
     repository = OrderRepository(session)
     updated = await order_service.update_order_status(repository, order_id, body.status)
