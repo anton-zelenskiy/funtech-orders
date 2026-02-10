@@ -57,7 +57,6 @@ services:
         condition: service_started
     volumes:
       - .:/app
-    user: "${UID:-1000}:${GID:-1000}"
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/funtech_orders
       REDIS_URL: redis://redis:6379/0
@@ -77,7 +76,6 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
-    user: "${UID:-1000}:${GID:-1000}"
     environment:
       REDIS_URL: redis://redis:6379/0
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
@@ -92,7 +90,6 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
-    user: "${UID:-1000}:${GID:-1000}"
     environment:
       REDIS_URL: redis://redis:6379/0
 

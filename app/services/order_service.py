@@ -1,8 +1,33 @@
 import uuid
+from uuid import UUID
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.cache.decorators import cached_entity
 from app.db.models import Order, OrderStatus
 from app.db.repositories.order_repository import OrderRepository
-from app.schemas.order import OrderCreate
+from app.schemas.order import OrderCreate, OrderResponse
+from app.services import order_service
+
+
+ORDER_DETAIL_CACHE_TTL = 300
+
+
+@cached_entity(
+    key_prefix="order:",
+    key_param_name="order_id",
+    response_model=OrderResponse,
+    ttl=ORDER_DETAIL_CACHE_TTL,
+)
+async def get_order(
+    order_id: UUID,
+    session: AsyncSession,
+) -> OrderResponse | None:
+    repository = OrderRepository(session)
+    order = await repository.get_by_id(order_id)
+    if order is None:
+        return None
+    return OrderResponse.model_validate(order)
 
 
 async def create_order(
@@ -17,10 +42,6 @@ async def create_order(
         total_price=order_dict["total_price"],
         status=OrderStatus.PENDING,
     )
-
-
-async def get_order(repository: OrderRepository, order_id: uuid.UUID) -> Order | None:
-    return await repository.get_by_id(order_id)
 
 
 async def update_order_status(

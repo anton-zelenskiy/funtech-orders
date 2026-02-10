@@ -16,4 +16,6 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:8000"]
     rate_limit_default: str = "100/minute"
 
+    log_level: str = "INFO"
+
 settings = Settings()

@@ -8,11 +8,13 @@ from slowapi.errors import RateLimitExceeded
 from app.api.router import api_router
 from app.core.config import settings
 from app.core.limiter import limiter
+from app.core.logging import setup_logging
 from app.kafka.producer import close_kafka_producer, get_kafka_producer
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    setup_logging(log_level=settings.log_level)
     await get_kafka_producer()
     yield
     await close_kafka_producer()

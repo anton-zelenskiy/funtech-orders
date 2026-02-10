@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cache.order_cache import get_order_cached, invalidate_order_cached, set_order_cached
+from app.cache.decorators import invalidate_cache
 from app.core.limiter import limiter
 from app.kafka.producer import send_new_order_event
 from app.core.dependencies import get_current_user
@@ -43,20 +43,11 @@ async def get_order(
     session: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ) -> OrderResponse:
-    cached = await get_order_cached(order_id)
-    if cached is not None:
-        response = OrderResponse.model_validate(cached)
-        if response.user_id != current_user.id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your order")
-        return response
-    repository = OrderRepository(session)
-    order = await order_service.get_order(repository, order_id)
-    if order is None:
+    response = await order_service.get_order(order_id, session)
+    if response is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
-    if order.user_id != current_user.id:
+    if response.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your order")
-    response = OrderResponse.model_validate(order)
-    await set_order_cached(order_id, response.model_dump(mode="json"))
     return response
 
 
@@ -69,16 +60,17 @@ async def update_order(
     session: AsyncSession = Depends(get_db_session),
     current_user: User = Depends(get_current_user),
 ) -> OrderResponse:
-    repository = OrderRepository(session)
-    order = await order_service.get_order(repository, order_id)
+    order = await order_service.get_order(order_id, session)
     if order is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
     if order.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your order")
+    
+    repository = OrderRepository(session)
     updated = await order_service.update_order_status(repository, order_id, body.status)
     if updated is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
-    await invalidate_order_cached(order_id)
+    await invalidate_cache(f"order:{order_id}")
     return OrderResponse.model_validate(updated)
 
 

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from app.core.security import create_access_token
 from app.db.base import Base, get_db_session
-from app.db.models import Order, User
+from app.db.models import User
 from app.main import app
 
 import os

@@ -1,14 +1,14 @@
 import asyncio
 import json
-import logging
-
+import structlog
 from aiokafka import AIOKafkaConsumer
 
 from app.core.config import settings
+from app.core.logging import setup_logging
 from app.tasks.broker import broker
 from app.tasks.order_tasks import process_order_task
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 async def run_consumer() -> None:
@@ -27,16 +27,16 @@ async def run_consumer() -> None:
                 order_id = payload.get("order_id")
                 if order_id:
                     await process_order_task.kiq(order_id=order_id)
-                    logger.info("Enqueued process_order_task for order_id=%s", order_id)
+                    logger.info("enqueued_process_order_task", order_id=order_id)
             except (json.JSONDecodeError, KeyError) as e:
-                logger.warning("Invalid message: %s", e)
+                logger.warning("invalid_message", error=str(e))
     finally:
         await consumer.stop()
         await broker.shutdown()
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+    setup_logging(log_level=settings.log_level)
     asyncio.run(run_consumer())
 
 
