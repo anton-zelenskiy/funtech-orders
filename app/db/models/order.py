@@ -1,6 +1,6 @@
 import enum
 import uuid
-from datetime import datetime
+import datetime
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -26,6 +26,6 @@ class Order(Base):
     status: Mapped[OrderStatus] = mapped_column(
         String(20), nullable=False, default=OrderStatus.PENDING
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=datetime.datetime.now(datetime.UTC))
 
     user = relationship("User", back_populates="orders", lazy="raise")

@@ -1,8 +1,10 @@
-import pytest_asyncio
+import pytest
 from httpx import AsyncClient
 
+pytestmark = pytest.mark.asyncio
 
-@pytest_asyncio.fixture
+
+@pytest.fixture
 async def registered_user(client: AsyncClient):
     await client.post(
         "/register/",
@@ -16,7 +18,6 @@ async def registered_user(client: AsyncClient):
     return {"Authorization": f"Bearer {data['access_token']}"}
 
 
-@pytest_asyncio.mark.asyncio
 async def test_register(client: AsyncClient):
     resp = await client.post(
         "/register/",
@@ -28,7 +29,6 @@ async def test_register(client: AsyncClient):
     assert "id" in data
 
 
-@pytest_asyncio.mark.asyncio
 async def test_register_duplicate_email(client: AsyncClient):
     await client.post(
         "/register/",
@@ -41,7 +41,6 @@ async def test_register_duplicate_email(client: AsyncClient):
     assert resp.status_code == 400
 
 
-@pytest_asyncio.mark.asyncio
 async def test_token(client: AsyncClient):
     await client.post(
         "/register/",
@@ -57,7 +56,6 @@ async def test_token(client: AsyncClient):
     assert "access_token" in data
 
 
-@pytest_asyncio.mark.asyncio
 async def test_token_invalid(client: AsyncClient):
     resp = await client.post(
         "/token/",
@@ -66,7 +64,6 @@ async def test_token_invalid(client: AsyncClient):
     assert resp.status_code == 401
 
 
-@pytest_asyncio.mark.asyncio
 async def test_create_order(client: AsyncClient, auth_headers):
     resp = await client.post(
         "/orders/",
@@ -80,7 +77,6 @@ async def test_create_order(client: AsyncClient, auth_headers):
     assert "id" in data
 
 
-@pytest_asyncio.mark.asyncio
 async def test_create_order_unauthorized(client: AsyncClient):
     resp = await client.post(
         "/orders/",
@@ -89,7 +85,6 @@ async def test_create_order_unauthorized(client: AsyncClient):
     assert resp.status_code == 401
 
 
-@pytest_asyncio.mark.asyncio
 async def test_get_order(client: AsyncClient, test_user, auth_headers):
     create_resp = await client.post(
         "/orders/",
@@ -102,7 +97,6 @@ async def test_get_order(client: AsyncClient, test_user, auth_headers):
     assert resp.json()["id"] == order_id
 
 
-@pytest_asyncio.mark.asyncio
 async def test_get_order_forbidden(client: AsyncClient, auth_headers, registered_user):
     create_resp = await client.post(
         "/orders/",
@@ -114,7 +108,6 @@ async def test_get_order_forbidden(client: AsyncClient, auth_headers, registered
     assert resp.status_code == 403
 
 
-@pytest_asyncio.mark.asyncio
 async def test_patch_order(client: AsyncClient, auth_headers):
     create_resp = await client.post(
         "/orders/",
@@ -131,7 +124,6 @@ async def test_patch_order(client: AsyncClient, auth_headers):
     assert resp.json()["status"] == "PAID"
 
 
-@pytest_asyncio.mark.asyncio
 async def test_get_orders_by_user(client: AsyncClient, test_user, auth_headers):
     resp = await client.get(
         f"/orders/user/{test_user.id}/",
@@ -141,7 +133,6 @@ async def test_get_orders_by_user(client: AsyncClient, test_user, auth_headers):
     assert isinstance(resp.json(), list)
 
 
-@pytest_asyncio.mark.asyncio
 async def test_get_orders_by_user_forbidden(client: AsyncClient, auth_headers):
     resp = await client.get("/orders/user/99999/", headers=auth_headers)
     assert resp.status_code == 403

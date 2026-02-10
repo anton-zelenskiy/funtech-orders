@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, patch
 
-import pytest_asyncio
+import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -12,13 +12,10 @@ from app.main import app
 
 import os
 
-TEST_DATABASE_URL = os.environ.get(
-    "TEST_DATABASE_URL",
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/funtech_orders_test",
-)
+TEST_DATABASE_URL = os.environ.get('TEST_DATABASE_URL')
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def db_engine():
     engine = create_async_engine(
         TEST_DATABASE_URL,
@@ -32,7 +29,7 @@ async def db_engine():
     await engine.dispose()
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def db_session(db_engine) -> AsyncGenerator[AsyncSession, None]:
     factory = async_sessionmaker(
         db_engine,
@@ -46,7 +43,7 @@ async def db_session(db_engine) -> AsyncGenerator[AsyncSession, None]:
         await session.rollback()
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def client(db_session: AsyncSession):
     async def override_get_db():
         yield db_session
@@ -56,9 +53,6 @@ async def client(db_session: AsyncSession):
         patch("app.kafka.producer.get_kafka_producer", new_callable=AsyncMock),
         patch("app.kafka.producer.close_kafka_producer", new_callable=AsyncMock),
         patch("app.api.orders.send_new_order_event", new_callable=AsyncMock),
-        patch("app.api.orders.get_order_cached", new_callable=AsyncMock, return_value=None),
-        patch("app.api.orders.set_order_cached", new_callable=AsyncMock),
-        patch("app.api.orders.invalidate_order_cached", new_callable=AsyncMock),
     ):
         async with AsyncClient(
             transport=ASGITransport(app=app),
@@ -68,7 +62,7 @@ async def client(db_session: AsyncSession):
     app.dependency_overrides.clear()
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def test_user(db_session: AsyncSession):
     from app.core.security import get_password_hash
 
@@ -82,7 +76,7 @@ async def test_user(db_session: AsyncSession):
     return user
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def auth_headers(test_user):
     token = create_access_token(data={"sub": str(test_user.id)})
     return {"Authorization": f"Bearer {token}"}

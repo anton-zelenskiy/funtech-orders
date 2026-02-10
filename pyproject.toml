@@ -20,8 +20,11 @@ dependencies = [
     "taskiq-redis>=0.3.0",
     "slowapi>=0.1.9",
     "python-multipart>=0.0.22",
-    "ruff>=0.15.0",
     "structlog>=25.5.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "httpx>=0.28.0",
+    "ruff>=0.15.0",
 ]
 
 [dependency-groups]
@@ -29,6 +32,7 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
     "httpx>=0.28.0",
+    "ruff>=0.15.0",
 ]
 
 [build-system]
@@ -47,3 +51,5 @@ target-version = "py312"
 asyncio_mode = "auto"
 testpaths = ["tests", "app"]
 pythonpath = ["."]
+python_files = ["test_*.py", "*_tests.py"]
+python_functions = "test_*"
