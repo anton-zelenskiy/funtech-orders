@@ -7,27 +7,14 @@ Order management service on FastAPI (PostgreSQL, Redis, Kafka, taskiq).
 Requires [uv](https://docs.astral.sh/uv/).
 
 ```bash
-# Create venv and install dependencies
-uv sync
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# With dev dependencies (pytest, etc.)
-uv sync --group dev
+# Build and run containers
+docker compose up -d --build
 
-# Run API locally
-uv run uvicorn app.main:app --reload
+# Apply migrations
+docker compose exec api alembic upgrade head
 ```
 
-Generate/update the lockfile for reproducible installs:
-
-```bash
-uv lock
-```
-
-## Docker
-
-```bash
-docker compose up --build
-```
-
-API: http://localhost:8000  
-Docs: http://localhost:8000/docs
+# Make api requests in [API docs](http://localhost:8000/docs):

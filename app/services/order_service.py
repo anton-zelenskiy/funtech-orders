@@ -1,6 +1,6 @@
 import uuid
 from uuid import UUID
-
+import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cache.decorators import cached_entity
@@ -10,6 +10,8 @@ from app.schemas.order import OrderCreate, OrderResponse
 
 
 ORDER_DETAIL_CACHE_TTL = 300
+
+logger = structlog.get_logger(__name__)
 
 
 @cached_entity(
@@ -25,6 +27,7 @@ async def get_order(
     repository = OrderRepository(session)
     order = await repository.get_by_id(order_id)
     if order is None:
+        logger.error('order not found', order_id=order_id)
         return None
     return OrderResponse.model_validate(order)
 

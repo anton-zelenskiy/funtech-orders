@@ -50,8 +50,9 @@ async def invalidate_cache(cache_key: str) -> None:
     cache = get_cache()
     try:
         await cache.delete(cache_key)
+        logger.info('cache invalidated', cache_key=cache_key)
     except Exception:
-        pass   
+        logger.error('error invalidating cache', cache_key=cache_key)   
 
 
 def cached_entity(
@@ -91,7 +92,7 @@ def cached_entity(
                         return response_model.model_validate(cached_data)
                     return cached_data
             except Exception:
-                pass
+                logger.error('error getting cached data', cache_key=cache_key)
 
             logger.info('cache miss', cache_key=cache_key)
 
@@ -105,7 +106,7 @@ def cached_entity(
                         data_to_cache = result
                     await cache.set(cache_key, data_to_cache, ttl=ttl)
                 except Exception:
-                    pass
+                    logger.error('error setting cached data', cache_key=cache_key)
 
             return result
 
