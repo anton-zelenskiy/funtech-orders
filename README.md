@@ -17,4 +17,4 @@ docker compose up -d --build
 docker compose exec api alembic upgrade head
 ```
 
-# Make api requests in [API docs](http://localhost:8000/docs):
+### Done! You can start making api requests in [API docs](http://localhost:8000/docs)
