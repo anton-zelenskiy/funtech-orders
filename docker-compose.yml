@@ -60,9 +60,11 @@ services:
       - .:/app
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/funtech_orders
-      REDIS_URL: redis://redis:6379/0
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      JWT_SECRET: change-me-in-production
+      JWT_SECRET: secret
     ports:
       - "8000:8000"
 
@@ -79,7 +81,9 @@ services:
     volumes:
       - .:/app
     environment:
-      REDIS_URL: redis://redis:6379/0
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_NEW_ORDER_TOPIC: new_order
 
@@ -94,7 +98,9 @@ services:
     volumes:
       - .:/app
     environment:
-      REDIS_URL: redis://redis:6379/0
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
 
 volumes:
   postgres_data: {}

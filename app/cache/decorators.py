@@ -17,28 +17,15 @@ _cache: Cache | None = None
 logger = structlog.get_logger(__name__)
 
 
-def _parse_redis_url(url: str) -> dict:
-    from urllib.parse import urlparse
-
-    parsed = urlparse(url)
-    return {
-        "endpoint": parsed.hostname or "localhost",
-        "port": parsed.port or 6379,
-        "db": int(parsed.path.lstrip("/")) if parsed.path else 0,
-        "password": parsed.password,
-    }
-
-
 def get_cache() -> Cache:
     global _cache
     if _cache is None:
-        params = _parse_redis_url(settings.redis_url)
         _cache = Cache(
             RedisCache,
-            endpoint=params["endpoint"],
-            port=params["port"],
-            db=params["db"],
-            password=params.get("password"),
+            endpoint=settings.redis_host,
+            port=settings.redis_port,
+            db=settings.redis_db,
+            password=settings.redis_password,
             ttl=DEFAULT_TTL,
             serializer=JsonSerializer(),
         )
