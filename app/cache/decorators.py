@@ -1,5 +1,7 @@
+import inspect
 from functools import wraps
-from typing import Any, Callable, TypeVar, ParamSpec
+from typing import Any, Callable
+
 import structlog
 from aiocache import Cache
 from aiocache.backends.redis import RedisCache
@@ -7,9 +9,6 @@ from aiocache.serializers import JsonSerializer
 from pydantic import BaseModel
 
 from app.core.config import settings
-
-P = ParamSpec("P")
-R = TypeVar("R", bound=BaseModel | None)
 
 DEFAULT_TTL = 300
 
@@ -61,23 +60,21 @@ def cached_entity(
     ttl: int = DEFAULT_TTL,
     response_model: type[BaseModel] | None = None,
 ):
-    def decorator(func: Callable[P, Any]) -> Callable[P, Any]:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        sig = inspect.signature(func)
+        param_names = list(sig.parameters.keys())
+        key_param_index = param_names.index(key_param_name) if key_param_name in param_names else None
+
         @wraps(func)
-        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             cache = get_cache()
 
             if callable(key_param_name):
                 cache_key_value = key_param_name(*args, **kwargs)
             else:
                 cache_key_value = kwargs.get(key_param_name)
-                if cache_key_value is None and args:
-                    import inspect
-                    sig = inspect.signature(func)
-                    param_names = list(sig.parameters.keys())
-                    if key_param_name in param_names:
-                        param_index = param_names.index(key_param_name)
-                        if param_index < len(args):
-                            cache_key_value = args[param_index]
+                if cache_key_value is None and key_param_index is not None and key_param_index < len(args):
+                    cache_key_value = args[key_param_index]
 
             if cache_key_value is None:
                 return await func(*args, **kwargs)
